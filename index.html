@@ -339,7 +339,7 @@
   let nameTimer=null;
   tvaInput.addEventListener("input",function(){
     const q=tvaInput.value.trim(); clearTimeout(nameTimer);
-    if(q.length<1){ tvaDrop.classList.remove("open"); tvaDrop.innerHTML=""; return; }
+    if(q.length<1){ tvaDrop.classList.remove("open"); tvaDrop.innerHTML=""; nameMatches=[]; hiIndex=-1; return; }
     if(!isSet(TVA_URL)){setTvaStatus("error","Configuration error: TVA_URL not set in the file.");return;}
     nameTimer=setTimeout(function(){ jsonp(TVA_URL,{fn:"searchNames",arg:q},function(list){ nameMatches=list||[]; hiIndex=-1; renderDrop(); }); },200);
   });
@@ -355,7 +355,12 @@
     tvaDrop.innerHTML=nameMatches.map((m,i)=>`<div class="name-opt ${i===hiIndex?'hi':''}" onclick="pickName(${i})">${esc(m.name)}<small>Code: ${esc(m.code)}${m.town?' • '+esc(m.town):''}</small></div>`).join("");
     tvaDrop.classList.add("open");
   }
-  function pickName(i){ const m=nameMatches[i]; if(!m)return; tvaInput.value=m.name; tvaDrop.classList.remove("open"); loadRow(m.row,m.code); }
+  function pickName(i){
+    const m=nameMatches[i]; if(!m)return;
+    tvaInput.value=m.name;
+    loadRow(m.row,m.code);
+    // dropdown stays open — do not close it here
+  }
   function manualSearchTVA(){ if(nameMatches.length){ pickName(hiIndex>=0?hiIndex:0); } else { tvaInput.focus(); } }
   function loadRow(row,code){
     tvaCode=code; tvaWatch=null; tvaSpares=null;
