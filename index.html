@@ -3,191 +3,445 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Service Receipt</title>
+<title>AKAI Distributors — Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --teal:#1f9d8f; --teal-dark:#178074; --teal-soft:#e8f5f3;
-    --bg:#f4f7f6; --card:#ffffff; --line:#e3e9e8;
-    --text:#2b3a39; --muted:#7d8c8a; --ok:#1f9d8f; --err:#d9534f;
+    --slate:#2b4257; --slate-2:#34506a; --slate-dk:#22384b; --slate-ink:#1d2f3f;
+    --amber:#e3a52e; --amber-dk:#c98e1d; --amber-soft:#fbf3e1;
+    --cream:#f6f1e7; --cream-2:#efe7d6;
+    --white:#fff; --off:#f3f0ea; --ink:#27323b; --muted:#7d8896;
+    --border-lt:#e6ddcd;
+    --good:#3f9d6e; --warn:#c08a2a; --bad:#bd5147;
+    --rad-sm:7px; --rad-md:11px; --rad-lg:16px; --rad-xl:22px;
   }
-  *{box-sizing:border-box;}
-  body{
-    margin:0; font-family:'Segoe UI',Arial,sans-serif; background:var(--bg);
-    color:var(--text); display:flex; justify-content:center; padding:28px 16px;
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{font-size:15px;}
+  body{font-family:'Inter',sans-serif;background:var(--off);min-height:100vh;color:var(--ink);}
+  .serif{font-family:'Playfair Display',serif;}
+  .admono{width:42px;height:42px;background:var(--amber);border-radius:var(--rad-sm);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:15px;font-weight:800;color:var(--slate-ink);flex-shrink:0;}
+  .topbar{background:var(--slate);padding:0 24px;height:74px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:30;}
+  .topbar-left{display:flex;align-items:center;gap:16px;}
+  .topbar-brand{display:flex;align-items:center;gap:13px;}
+  .topbar-text{display:flex;flex-direction:column;gap:1px;}
+  .topbar-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:800;color:#fff;letter-spacing:.3px;line-height:1.15;}
+  .topbar-sub{font-size:10.5px;font-weight:500;color:rgba(255,255,255,.45);letter-spacing:1.4px;text-transform:uppercase;}
+  .topbar-date{font-size:11.5px;font-weight:500;color:rgba(255,255,255,.4);}
+  .ham{width:40px;height:40px;border:none;background:rgba(255,255,255,.08);border-radius:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:background .15s;}
+  .ham:hover{background:rgba(255,255,255,.16);}
+  .ham span{display:block;width:18px;height:2px;background:#fff;border-radius:2px;}
+  .overlay{position:fixed;inset:0;background:rgba(20,32,44,.45);opacity:0;visibility:hidden;transition:.2s;z-index:40;}
+  .overlay.open{opacity:1;visibility:visible;}
+  .drawer{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:82%;background:#fff;transform:translateX(-100%);transition:transform .24s ease;z-index:50;display:flex;flex-direction:column;box-shadow:4px 0 28px rgba(20,40,60,.18);}
+  .drawer.open{transform:translateX(0);}
+  .drawer-head{background:var(--slate);padding:22px 20px;display:flex;align-items:center;gap:12px;}
+  .drawer-head .t{display:flex;flex-direction:column;}
+  .drawer-head .t b{font-family:'Playfair Display',serif;color:#fff;font-size:16px;font-weight:800;}
+  .drawer-head .t span{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:rgba(255,255,255,.5);}
+  .drawer-nav{padding:12px;flex:1;}
+  .nav-item{display:flex;align-items:center;gap:13px;padding:15px 14px;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;border-radius:var(--rad-md);transition:background .12s;margin-bottom:4px;}
+  .nav-item:hover{background:var(--off);}
+  .nav-item.active{background:var(--amber-soft);color:var(--amber-dk);}
+  .nav-item svg{flex-shrink:0;}
+  .drawer-foot{padding:16px 20px;border-top:1px solid var(--border-lt);font-size:11px;color:var(--muted);}
+  .content{padding:34px 24px 56px;max-width:860px;margin:0 auto;}
+  .page{display:none;} .page.active{display:block;}
+  .lookup-card{background:linear-gradient(150deg,var(--slate-2) 0%,var(--slate-dk) 100%);border-radius:var(--rad-xl);padding:36px 36px 32px;margin-bottom:24px;position:relative;overflow:hidden;}
+  .lookup-card::after{content:'';position:absolute;top:-90px;right:-70px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(227,165,46,.16) 0%,transparent 70%);pointer-events:none;}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;}
+  .lookup-heading{font-family:'Playfair Display',serif;font-size:30px;font-weight:800;color:#fff;margin-bottom:6px;line-height:1.15;}
+  .lookup-heading em{color:#fff;font-style:normal;}
+  .lookup-sub{font-size:13.5px;color:rgba(255,255,255,.5);margin-bottom:24px;}
+  .input-row{display:flex;gap:11px;align-items:stretch;position:relative;z-index:1;}
+  .input-wrap{flex:1;position:relative;}
+  .input-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.32);pointer-events:none;}
+  .srf-input{width:100%;height:52px;padding:0 16px 0 46px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.13);border-radius:var(--rad-md);color:#fff;font-family:'Inter',sans-serif;font-size:15px;font-weight:500;outline:none;transition:border-color .2s,background .2s;letter-spacing:.4px;}
+  .srf-input::placeholder{color:rgba(255,255,255,.3);font-weight:400;}
+  .srf-input:focus{border-color:var(--amber);background:rgba(255,255,255,.11);}
+  .btn-lookup{height:52px;padding:0 28px;background:var(--amber);color:var(--slate-ink);font-size:13.5px;font-weight:700;border:none;border-radius:30px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .15s,transform .1s;white-space:nowrap;flex-shrink:0;letter-spacing:.3px;}
+  .btn-lookup:hover{background:var(--amber-dk);}
+  .btn-lookup:active{transform:scale(.97);}
+  .hint-line{margin-top:12px;font-size:11.5px;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:5px;position:relative;z-index:1;}
+  .name-drop{position:absolute;left:0;right:0;top:56px;background:#fff;border:1px solid var(--border-lt);border-radius:var(--rad-md);box-shadow:0 12px 30px rgba(20,40,60,.18);max-height:260px;overflow-y:auto;display:none;z-index:20;}
+  .name-drop.open{display:block;}
+  .name-opt{padding:12px 16px;font-size:14px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--border-lt);}
+  .name-opt:last-child{border-bottom:none;}
+  .name-opt:hover,.name-opt.hi{background:var(--amber-soft);}
+  .name-opt small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;}
+  .status-strip{display:none;align-items:center;gap:11px;padding:12px 16px;border-radius:var(--rad-md);font-size:13px;font-weight:500;margin-bottom:18px;border:1px solid transparent;}
+  .status-strip.loading{display:flex;background:var(--amber-soft);color:var(--amber-dk);border-color:rgba(227,165,46,.3);}
+  .status-strip.error{display:flex;background:#fbeeec;color:#b04339;border-color:rgba(189,81,71,.2);}
+  .spinner{width:15px;height:15px;border:2px solid rgba(201,142,29,.25);border-top-color:var(--amber-dk);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .seg{display:inline-flex;background:var(--slate-dk);border-radius:30px;padding:4px;margin-bottom:18px;}
+  .seg button{border:none;background:transparent;color:rgba(255,255,255,.55);font-size:16px;font-weight:700;padding:11px 30px;border-radius:30px;cursor:pointer;letter-spacing:.4px;transition:.15s;display:flex;align-items:center;gap:8px;}
+  .seg button svg{width:17px;height:17px;}
+  .seg button.active{background:var(--amber);color:var(--slate-ink);}
+  .results-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px;}
+  .results-label{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);}
+  .srf-chip{display:inline-flex;align-items:center;gap:6px;background:var(--slate);color:var(--amber);font-size:11.5px;font-weight:700;padding:6px 15px;border-radius:30px;letter-spacing:.5px;}
+  .result-card{background:var(--cream);border-radius:var(--rad-xl);border:1px solid var(--border-lt);overflow:hidden;margin-bottom:18px;animation:up .22s ease both;}
+  @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .disclaimer{padding:15px 24px 20px;font-size:12px;color:var(--muted);text-align:center;font-style:italic;}
+  .dealer-strip{background:var(--cream-2);padding:19px 24px;border-bottom:1px solid var(--border-lt);display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .dealer-strip .field span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin-bottom:4px;font-weight:700;}
+  .dealer-strip .field b{font-size:15px;color:var(--slate-ink);font-weight:600;word-break:break-word;}
+  .tbl-wrap{padding:7px;}
+  table.tva{width:100%;border-collapse:collapse;font-size:13.5px;}
+  table.tva thead th{background:var(--slate-2);color:#fff;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:13px 8px;text-align:center;}
+  table.tva thead th:first-child{text-align:left;border-radius:9px 0 0 0;}
+  table.tva thead th:last-child{border-radius:0 9px 0 0;}
+  table.tva tbody td{padding:13px 8px;border-bottom:1px solid var(--border-lt);text-align:center;color:var(--ink);background:#fff;}
+  table.tva tbody td:first-child{text-align:left;font-weight:600;color:var(--slate-ink);}
+  table.tva tbody tr:hover td{background:#fbf8f1;}
+  .bar{position:relative;height:7px;width:62px;margin:5px auto 0;background:var(--border-lt);border-radius:6px;overflow:hidden;}
+  .bar>i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;}
+  .pct-txt{font-weight:700;font-size:13px;}
+  .total-row td{background:var(--amber-soft)!important;border-top:2px solid var(--amber);font-weight:800;color:var(--slate-ink);font-size:14px;padding:16px 8px;}
+  .total-row td:last-child{color:var(--amber-dk);}
+  .empty-state{text-align:center;padding:70px 24px;background:var(--cream);border-radius:var(--rad-xl);border:1px solid var(--border-lt);}
+  .empty-icon-wrap{width:70px;height:70px;border-radius:16px;background:var(--slate);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;}
+  .empty-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:800;color:var(--ink);margin-bottom:9px;}
+  .empty-sub{font-size:13px;color:var(--muted);max-width:300px;margin:0 auto;line-height:1.85;}
+  .svc-grid{padding:7px;}
+  .svc-row{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border-lt);}
+  .svc-cell{background:#fff;padding:13px 16px;}
+  .svc-cell span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:700;margin-bottom:3px;}
+  .svc-cell b{font-size:14.5px;color:var(--slate-ink);font-weight:600;word-break:break-word;}
+  .form-card{background:var(--cream);border-radius:var(--rad-xl);border:1px solid var(--border-lt);overflow:hidden;}
+  .form-body{padding:26px 28px;}
+  .fld{margin-bottom:18px;}
+  .fld label{display:block;font-weight:700;font-size:12.5px;letter-spacing:.4px;color:var(--slate-ink);margin-bottom:7px;text-transform:uppercase;}
+  .fld label .req{color:var(--bad);}
+  .fld input{width:100%;padding:13px 15px;border:1px solid var(--border-lt);border-radius:var(--rad-md);font-size:15px;background:#fff;color:var(--ink);font-family:'Inter',sans-serif;transition:.15s;}
+  .fld input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(227,165,46,.16);}
+  .fld input[readonly]{background:#efe7d6;color:var(--muted);cursor:not-allowed;letter-spacing:.5px;}
+  .btn-submit{width:100%;padding:15px;background:var(--amber);color:var(--slate-ink);border:none;border-radius:var(--rad-md);font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:.15s;}
+  .btn-submit:hover{background:var(--amber-dk);}
+  .btn-submit:disabled{opacity:.6;cursor:default;}
+  .form-msg{margin-top:16px;padding:13px 15px;border-radius:var(--rad-md);font-weight:600;font-size:14px;display:none;}
+  .form-msg.ok{background:var(--amber-soft);color:var(--good);display:block;}
+  .form-msg.err{background:#fbe9e8;color:var(--bad);display:block;}
+  @media(max-width:700px){
+    .topbar{padding:0 14px;height:64px;}
+    .topbar-name{font-size:15px;}
+    .content{padding:20px 16px 40px;}
+    .lookup-card{padding:24px 18px;}
+    .lookup-heading{font-size:24px;}
+    .input-row{flex-direction:column;}
+    .btn-lookup{width:100%;justify-content:center;}
+    .dealer-strip{grid-template-columns:1fr;gap:10px;}
+    table.tva{font-size:12.5px;}
+    table.tva thead th{padding:10px 4px;}
+    table.tva tbody td{padding:10px 4px;}
+    .bar{width:46px;}
+    .seg button{font-size:14px;padding:10px 22px;}
+    .svc-row{grid-template-columns:1fr;}
+    .form-body{padding:20px 18px;}
   }
-  .card{
-    background:var(--card); width:100%; max-width:560px; border-radius:18px;
-    box-shadow:0 8px 30px rgba(31,157,143,.10); overflow:hidden;
-  }
-  .head{
-    background:linear-gradient(135deg,var(--teal),var(--teal-dark));
-    color:#fff; padding:28px 32px;
-  }
-  .head .logo{
-    width:42px; height:42px; border-radius:12px; background:rgba(255,255,255,.18);
-    display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:14px;
-  }
-  .head h1{margin:0; font-size:21px; font-weight:600; letter-spacing:.2px;}
-  .head p{margin:6px 0 0; font-size:13px; opacity:.92;}
-  .body{padding:28px 32px;}
-  .field{margin-bottom:20px;}
-  label{display:block; font-weight:600; margin-bottom:7px; font-size:13.5px; color:var(--text);}
-  .req{color:var(--err);}
-  input{
-    width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:11px;
-    font-size:15px; background:#fbfdfc; color:var(--text); transition:.15s;
-  }
-  input:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(31,157,143,.14); background:#fff;}
-  input[readonly]{background:#eef3f2; color:var(--muted); cursor:not-allowed;}
-  .joinrow{display:flex;}
-  .joinrow .pre{
-    background:#eef3f2; border:1px solid var(--line); border-right:none;
-    padding:12px 14px; border-radius:11px; white-space:nowrap; color:var(--muted);
-    font-size:15px; width:100%; letter-spacing:.5px;
-  }
-  button{
-    width:100%; padding:15px; background:var(--teal); color:#fff; border:none;
-    border-radius:12px; font-size:16px; font-weight:600; cursor:pointer; margin-top:8px;
-    transition:.15s;
-  }
-  button:hover{background:var(--teal-dark);}
-  button:disabled{opacity:.6; cursor:default;}
-  .note{font-size:11.5px; color:var(--muted); margin-top:20px; text-align:center; line-height:1.5;}
-  .msg{margin-top:18px; padding:13px 15px; border-radius:11px; font-weight:600; font-size:14px; display:none;}
-  .msg.ok{background:var(--teal-soft); color:var(--ok); display:block;}
-  .msg.err{background:#fbe9e8; color:var(--err); display:block;}
 </style>
 </head>
 <body>
-  <div class="card">
-    <div class="head">
-      <div class="logo">&#9201;</div>
-      <h1>Service Receipt</h1>
-      <p>AKAI Distributors &mdash; submit a new service entry</p>
+
+<!-- CONFIG: paste your two Web App URLs -->
+<script>
+  const SERVICE_URL = "https://script.google.com/macros/s/AKfycbzyegqh7qxr8MF08nze2E4iTvt-fIIc4aWZRAAI4hP5XBPDTrfPeQAHnVQE5DuB3Xxj/exec";
+  const TVA_URL = "https://script.google.com/macros/s/AKfycbzA5FoK_Rz1y5Qh9i4InkbowjdKg2iXAC6WdeVrl-zdYd5dLCqrJ8tU_D6zArVu79mh/exec";
+  const JOB_PREFIX = "JOAE34526270";
+</script>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <button class="ham" id="hamBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+    <div class="topbar-brand">
+      <div class="admono">AD</div>
+      <div class="topbar-text">
+        <div class="topbar-name">AKAI Distributors</div>
+        <div class="topbar-sub" id="topSub">Service Portal</div>
+      </div>
     </div>
-    <div class="body">
-      <div class="field">
-        <label>SRF Number <span class="req">*</span></label>
-        <input id="srf" placeholder="Enter SRF number" autocomplete="off">
-      </div>
+  </div>
+  <div class="topbar-date" id="todayDate"></div>
+</div>
 
-      <div class="field">
-        <label>Date <span class="req">*</span></label>
-        <input id="date" type="date">
-      </div>
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="admono">AD</div>
+    <div class="t"><b>AKAI Distributors</b><span>Navigation</span></div>
+  </div>
+  <nav class="drawer-nav">
+    <div class="nav-item active" data-page="service" onclick="gotoPage('service')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Service Lookup
+    </div>
+    <div class="nav-item" data-page="tva" onclick="gotoPage('tva')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      Target Vs Achievement
+    </div>
+    <div class="nav-item" data-page="receipt" onclick="gotoPage('receipt')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+      New Service Entry
+    </div>
+  </nav>
+  <div class="drawer-foot">© AKAI Distributors</div>
+</aside>
 
-      <div class="field">
-        <label>Dealer Name <span class="req">*</span></label>
-        <input id="dealer" list="dealerList" placeholder="Start typing dealer name" autocomplete="off">
-        <datalist id="dealerList"></datalist>
-      </div>
+<div class="content">
 
-      <div class="field">
-        <label>Sales Executive <span class="req">*</span></label>
-        <input id="sales" list="salesList" placeholder="Start typing name" autocomplete="off">
-        <datalist id="salesList"></datalist>
-      </div>
-
-      <div class="field">
-        <label>D.O.P <span class="req">*</span></label>
-        <input id="dop" list="dopList" placeholder="Stock, PGD, or type your own" autocomplete="off">
-        <datalist id="dopList">
-          <option value="Stock"></option>
-          <option value="PGD"></option>
-        </datalist>
-      </div>
-
-      <div class="field">
-        <label>Variant Number <span class="req">*</span></label>
-        <input id="variant" placeholder="Enter variant number" autocomplete="off">
-      </div>
-
-      <div class="field">
-        <label>Complain <span class="req">*</span></label>
-        <input id="complain" list="complainList" placeholder="Start typing complain" autocomplete="off">
-        <datalist id="complainList">
-          <option value="STRAP BROKEN"></option><option value="STOP"></option>
-          <option value="SPEAKER ISSUE"></option><option value="RUNNING SLOW"></option>
-          <option value="NOTIFICATION ISSUE"></option><option value="M.G CHANGE"></option>
-          <option value="LOCK PROBLEM"></option><option value="LIGHT ISSUE"></option>
-          <option value="HANDS PROBLEM"></option><option value="DISPLAY PROBLEM"></option>
-          <option value="DIGITAL PROBLEM"></option><option value="DAY DATE PROBLEM"></option>
-          <option value="DAIL SPOT"></option><option value="CROWN ISSUE"></option>
-          <option value="CHARGING ISSUE"></option><option value="CHAIN DISCOLOUR"></option>
-          <option value="CASE/CHAIN DISCOLOUR"></option><option value="CASE STONE MISSING"></option>
-          <option value="CASE DISCOLOUR"></option><option value="BEZEL MISSING/LOOSE"></option>
-          <option value="BATTARY DRAINING VERY FAST"></option>
-        </datalist>
-      </div>
-
-      <div class="field">
-        <label>Job Offer <span class="req">*</span></label>
-        <div class="joinrow">
-          <span class="pre" id="jobPre"></span>
+  <div class="page active" id="page-service">
+    <div class="lookup-card">
+      <div class="eyebrow">Service Records</div>
+      <div class="lookup-heading serif">Service <em>Lookup</em></div>
+      <div class="lookup-sub">Enter an SRF number to view its service record.</div>
+      <div class="input-row">
+        <div class="input-wrap">
+          <div class="input-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+          <input type="text" id="svcInput" class="srf-input" placeholder="Enter SRF number…" autocomplete="off" spellcheck="false">
         </div>
+        <button class="btn-lookup" onclick="searchService()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Look Up</button>
       </div>
+      <div class="hint-line"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Press Enter or click Look Up to search</div>
+    </div>
+    <div class="status-strip" id="svcStatus"><div class="spinner" id="svcSpinner"></div><span id="svcStatusMsg">Searching…</span></div>
+    <div id="svcResults"></div>
+  </div>
 
-      <button id="submitBtn" onclick="submitForm()">Submit</button>
-      <div class="msg" id="msg"></div>
-      <div class="note">This content is securely sent to AKAI Distributors service system.</div>
+  <div class="page" id="page-tva">
+    <div class="lookup-card">
+      <div class="eyebrow">Performance Dashboard</div>
+      <div class="lookup-heading serif">Target <em>Vs</em> Achievement</div>
+      <div class="lookup-sub" id="tvaMonth">Loading month target…</div>
+      <div class="input-row">
+        <div class="input-wrap">
+          <div class="input-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+          <input type="text" id="tvaInput" class="srf-input" placeholder="Type dealer name…" autocomplete="off" spellcheck="false">
+          <div class="name-drop" id="tvaDrop"></div>
+        </div>
+        <button class="btn-lookup" onclick="manualSearchTVA()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Look Up</button>
+      </div>
+      <div class="hint-line"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Start typing a name and pick from the list</div>
+    </div>
+    <div class="status-strip" id="tvaStatus"><div class="spinner" id="tvaSpinner"></div><span id="tvaStatusMsg">Searching…</span></div>
+    <div id="tvaResults"></div>
+  </div>
+
+  <div class="page" id="page-receipt">
+    <div class="lookup-card">
+      <div class="eyebrow">Service Intake</div>
+      <div class="lookup-heading serif">New Service <em>Entry</em></div>
+      <div class="lookup-sub">Submit a new service receipt. It is sent for approval before recording.</div>
+    </div>
+    <div class="form-card">
+      <div class="form-body">
+        <div class="fld"><label>SRF Number <span class="req">*</span></label><input id="rSrf" placeholder="Enter SRF number" autocomplete="off"></div>
+        <div class="fld"><label>Date <span class="req">*</span></label><input id="rDate" type="date"></div>
+        <div class="fld"><label>Dealer Name <span class="req">*</span></label><input id="rDealer" list="rDealerList" placeholder="Start typing dealer name" autocomplete="off"><datalist id="rDealerList"></datalist></div>
+        <div class="fld"><label>Sales Executive <span class="req">*</span></label><input id="rSales" list="rSalesList" placeholder="Start typing name" autocomplete="off"><datalist id="rSalesList"></datalist></div>
+        <div class="fld"><label>D.O.P <span class="req">*</span></label><input id="rDop" list="rDopList" placeholder="Stock, PGD, or type your own" autocomplete="off"><datalist id="rDopList"><option value="Stock"></option><option value="PGD"></option></datalist></div>
+        <div class="fld"><label>Variant Number <span class="req">*</span></label><input id="rVariant" placeholder="Enter variant number" autocomplete="off"></div>
+        <div class="fld"><label>Complain <span class="req">*</span></label><input id="rComplain" list="rComplainList" placeholder="Start typing complain" autocomplete="off">
+          <datalist id="rComplainList">
+            <option value="STRAP BROKEN"></option><option value="STOP"></option><option value="SPEAKER ISSUE"></option><option value="RUNNING SLOW"></option>
+            <option value="NOTIFICATION ISSUE"></option><option value="M.G CHANGE"></option><option value="LOCK PROBLEM"></option><option value="LIGHT ISSUE"></option>
+            <option value="HANDS PROBLEM"></option><option value="DISPLAY PROBLEM"></option><option value="DIGITAL PROBLEM"></option><option value="DAY DATE PROBLEM"></option>
+            <option value="DAIL SPOT"></option><option value="CROWN ISSUE"></option><option value="CHARGING ISSUE"></option><option value="CHAIN DISCOLOUR"></option>
+            <option value="CASE/CHAIN DISCOLOUR"></option><option value="CASE STONE MISSING"></option><option value="CASE DISCOLOUR"></option><option value="BEZEL MISSING/LOOSE"></option>
+            <option value="BATTARY DRAINING VERY FAST"></option>
+          </datalist>
+        </div>
+        <div class="fld"><label>Job Offer <span class="req">*</span></label><input id="rJob" readonly></div>
+        <button class="btn-submit" id="rSubmitBtn" onclick="submitReceipt()">Submit Entry</button>
+        <div class="form-msg" id="rMsg"></div>
+      </div>
     </div>
   </div>
 
+</div>
+
 <script>
-  // ───── CONFIG: paste your Apps Script Web App URL below ─────
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyegqh7qxr8MF08nze2E4iTvt-fIIc4aWZRAAI4hP5XBPDTrfPeQAHnVQE5DuB3Xxj/exec";
-  const JOB_PREFIX = "JOAE34526270";
-  // ─────────────────────────────────────────────────────────────
+  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function num(v){if(!v)return 0;return Number(String(v).replace(/,/g,""))||0;}
+  function isSet(u){return u && u.indexOf("PASTE_")===-1;}
+  function jsonp(baseUrl,params,cb){
+    const cbName="cb_"+Math.random().toString(36).slice(2);
+    window[cbName]=function(res){cb(res);try{delete window[cbName];}catch(e){}try{document.body.removeChild(s);}catch(e){}};
+    const qs=Object.keys(params).map(k=>encodeURIComponent(k)+"="+encodeURIComponent(params[k])).join("&");
+    const s=document.createElement("script");
+    s.src=baseUrl+"?"+qs+"&callback="+cbName;
+    s.onerror=function(){cb(null);try{document.body.removeChild(s);}catch(e){}};
+    document.body.appendChild(s);
+  }
+  const hamBtn=document.getElementById("hamBtn"), drawer=document.getElementById("drawer"), overlay=document.getElementById("overlay");
+  function openDrawer(){drawer.classList.add("open");overlay.classList.add("open");}
+  function closeDrawer(){drawer.classList.remove("open");overlay.classList.remove("open");}
+  hamBtn.addEventListener("click",openDrawer);
+  overlay.addEventListener("click",closeDrawer);
+  function gotoPage(p){
+    document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+    document.getElementById("page-"+p).classList.add("active");
+    document.querySelectorAll(".nav-item").forEach(m=>m.classList.toggle("active",m.dataset.page===p));
+    document.getElementById("topSub").textContent = (p==="tva") ? "Target Vs Achievement" : (p==="receipt") ? "New Service Entry" : "Service Portal";
+    closeDrawer();
+    if(p==="tva" && !tvaMonthLoaded) loadMonth();
+  }
 
-  const DEALERS = ["A.C BANERJEE & SONS","AKAI DISTRIBUTORS","AKAI ELECTRONICS","ANANDA WATCH CO.","ASHALATA WATCH","BANIK WATCH","BASAK RADIO & WATCH","BERIWAL DISTRIBUTOR","BISHNU WATCH CO","BUNTY WATCH CO","CALCUTTA WATCH TRADING CO","CAPITAL WATCH CO. (DHP)","CHATTERJEE WATCH CO.","EASTERN WATCH CO.","FASHION SQUARE","GANESH WATCH CO","GHARI HOUSE","GHARI MAHAL ( BLG)","GHARI MAHAL (MLD)","GUPTA ELECTRONICS","GUPTA WATCH CO.","HIND WATCH CO.","HIND WATCH CO. (RAI)","JANATA WATCH CO.","JAY GURU TIME CO.","KOHINOOR WATCH MAKERS","LITON WATCH CO","M.B. WATCH ENTERPRISE","M/s B.ROY","M/S SONY TIMES","MANGALDEEP","MAPLE WATCH WORLD","MAYA WATCH CO","MAZUMDAR WATCH","MODERN WATCH CO","MUKUL WATCH CO","NEW GENEVA WATCH CO.","NEW RATAN WATCH CO.","NEW RUBY WATCH","NEW TIME AND SOUND","NORTH BENGAL WATCH & ELECTRICALS","ORIENT GLOBAL PVT LTD(RAI)","ORIENT GLOBAL PVT.LTD.(ALP)","ORIENT WATCH & RADIO CO","PANDIT SUDAMA MISHRA","PAUL BROTHER","PAUL WATCH CO","POPULAR WATCH CO.","PRANAB & BROTHERS","PRISTINE","PURANMAL RADHAKISHAN","RAHUL ENTERPRISE","RAJ KUMARI DEVI","RAJ WATCH CO (SLG)","RAJ WATCH CO.","REGENT WATCH CO.","ROYAL WATCH CO (SLG)","ROYAL'S COLLECTION","RUBY WATCH CO (D)","SAHA ELECTRONICS","SAHA WATCH CO.","SARKAR WATCH CENTRE","SARWAN WATCH CENTER","SIDARTH COMMUNICATION","SINGTAM WATCH HOUSE","SOUMIK ENTERPRISE","SRI KRISHNA WATCH CO.","STYLO","SWISS WATCH CO","THE MAPLE","TIME CENTRE","TIME HOUSE","TIME HOUSE (MATIGARA)","TIME HOUSE & OPTICALS","TIME KING","TIME MONARCH","UNION ENTERPRISE","WATCH AND OPTIC CENTRE"];
-  const SALES = ["SAMARENDRA CHANDRA SARKA","AJAY SINGHA","SOMEN DAS","CHANDAN DAS"];
+  function setSvcStatus(type,msg){const el=document.getElementById("svcStatus");el.className="status-strip "+type;document.getElementById("svcStatusMsg").textContent=msg;document.getElementById("svcSpinner").style.display=(type==="loading")?"block":"none";}
+  function clearSvcStatus(){document.getElementById("svcStatus").className="status-strip";}
+  function searchService(){
+    const inp=document.getElementById("svcInput"); const code=inp.value.trim();
+    if(!code){inp.focus();inp.style.borderColor="rgba(189,81,71,.8)";setTimeout(()=>inp.style.borderColor="",1400);return;}
+    if(!isSet(SERVICE_URL)){setSvcStatus("error","Configuration error: SERVICE_URL not set in the file.");return;}
+    setSvcStatus("loading","Searching for SRF "+code+"…");
+    document.getElementById("svcResults").innerHTML="";
+    jsonp(SERVICE_URL,{code:code},function(res){
+      clearSvcStatus();
+      if(!res || res.status!=="ok" || !res.results || !res.results.length){ renderSvcEmpty(code); return; }
+      renderSvc(res.results,code);
+    });
+  }
+  function renderSvcEmpty(code){
+    document.getElementById("svcResults").innerHTML=`<div class="empty-state"><div class="empty-icon-wrap"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="empty-title serif">No Record Found</div><div class="empty-sub">No service record matches SRF "${esc(code)}". Please verify and try again.</div></div>`;
+  }
+  function svcField(label,val){return `<div class="svc-cell"><span>${label}</span><b>${esc(val||"—")}</b></div>`;}
+  function renderSvc(results,code){
+    let cards="";
+    results.forEach(r=>{
+      cards+=`<div class="result-card"><div class="dealer-strip">
+          <div class="field"><span>SRF</span><b>${esc(r.SRF||code)}</b></div>
+          <div class="field"><span>Dealer</span><b>${esc(r.Dealer||r.DealerName||"—")}</b></div>
+          <div class="field"><span>Date</span><b>${esc(r.Date||"—")}</b></div></div>
+        <div class="svc-grid"><div class="svc-row">
+          ${svcField("Salesman",r.Salesman)}${svcField("D.O.P",r.DOP)}${svcField("Variant",r.Variant)}${svcField("Complain",r.Complain)}
+          ${svcField("Job Offer",r.JobOffer)}${svcField("Dispatch",r.Dispatch)}${svcField("Receive",r.Receive||r.Received)}${svcField("Charge",r.Charge)}
+          ${svcField("Delivery",r.Delivery||r.Delivered)}${svcField("Paid",r.Paid)}${svcField("WRA Amt",r.WraAmt)}${svcField("WRA Watch",r.WraWatch)}
+          ${svcField("Amount",r.Amount)}${svcField("Diff Amount",r.DiffAmt)}
+        </div></div><div class="disclaimer">Disclaimer: data is entered manually and may vary.</div></div>`;
+    });
+    const meta=`<div class="results-meta"><div class="results-label">Service Record${results.length>1?'s':''}</div><span class="srf-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>${esc(code)}</span></div>`;
+    document.getElementById("svcResults").innerHTML=meta+cards;
+  }
 
-  document.getElementById('jobPre').textContent = JOB_PREFIX;
-  (function(){
-    var dl=document.getElementById('dealerList'); DEALERS.forEach(function(x){var o=document.createElement('option');o.value=x;dl.appendChild(o);});
-    var sl=document.getElementById('salesList'); SALES.forEach(function(x){var o=document.createElement('option');o.value=x;sl.appendChild(o);});
-    document.getElementById('date').value = new Date().toISOString().slice(0,10);
-  })();
-
-  function val(id){ return document.getElementById(id).value.trim(); }
-
-  function submitForm(){
-    var msg=document.getElementById('msg');
-    var payload = {
-      srf: val('srf'),
-      date: val('date'),
-      dealer: val('dealer'),
-      sales: val('sales'),
-      dop: val('dop'),
-      variant: val('variant'),
-      complain: val('complain'),
-      joboffer: JOB_PREFIX
-    };
-
-    if(!payload.srf||!payload.date||!payload.dealer||!payload.sales||!payload.dop||!payload.variant||!payload.complain){
-      msg.className='msg err'; msg.textContent='Please fill all required fields.'; return;
+  const WATCH_BRANDS=["Titan","Sonata","Fastrack","Wakeup","Wonder","Clock","Lab","Edge"];
+  let tvaMonthValue="", tvaMonthLoaded=false;
+  let tvaMode="watches"; let tvaWatch=null, tvaSpares=null, tvaCode="";
+  let nameMatches=[], hiIndex=-1;
+  function setTvaStatus(type,msg){const el=document.getElementById("tvaStatus");el.className="status-strip "+type;document.getElementById("tvaStatusMsg").textContent=msg;document.getElementById("tvaSpinner").style.display=(type==="loading")?"block":"none";}
+  function clearTvaStatus(){document.getElementById("tvaStatus").className="status-strip";}
+  function loadMonth(){
+    tvaMonthLoaded=true;
+    if(!isSet(TVA_URL)){document.getElementById("tvaMonth").textContent="Set TVA_URL in the file to load data.";return;}
+    jsonp(TVA_URL,{fn:"getMonthTarget",arg:""},function(val){ tvaMonthValue=val||"—"; document.getElementById("tvaMonth").textContent="Target for the month: "+tvaMonthValue; });
+  }
+  const tvaInput=document.getElementById("tvaInput"), tvaDrop=document.getElementById("tvaDrop");
+  let nameTimer=null;
+  tvaInput.addEventListener("input",function(){
+    const q=tvaInput.value.trim(); clearTimeout(nameTimer);
+    if(q.length<1){ tvaDrop.classList.remove("open"); tvaDrop.innerHTML=""; return; }
+    if(!isSet(TVA_URL)){setTvaStatus("error","Configuration error: TVA_URL not set in the file.");return;}
+    nameTimer=setTimeout(function(){ jsonp(TVA_URL,{fn:"searchNames",arg:q},function(list){ nameMatches=list||[]; hiIndex=-1; renderDrop(); }); },200);
+  });
+  tvaInput.addEventListener("keydown",function(e){
+    if(!tvaDrop.classList.contains("open"))return;
+    if(e.key==="ArrowDown"){e.preventDefault();hiIndex=Math.min(hiIndex+1,nameMatches.length-1);renderDrop();}
+    else if(e.key==="ArrowUp"){e.preventDefault();hiIndex=Math.max(hiIndex-1,0);renderDrop();}
+    else if(e.key==="Enter"){e.preventDefault();if(hiIndex>=0&&nameMatches[hiIndex])pickName(hiIndex);}
+    else if(e.key==="Escape"){tvaDrop.classList.remove("open");}
+  });
+  function renderDrop(){
+    if(!nameMatches.length){ tvaDrop.innerHTML=`<div class="name-opt" style="color:var(--muted);cursor:default">No matching dealer name</div>`; tvaDrop.classList.add("open"); return; }
+    tvaDrop.innerHTML=nameMatches.map((m,i)=>`<div class="name-opt ${i===hiIndex?'hi':''}" onclick="pickName(${i})">${esc(m.name)}<small>Code: ${esc(m.code)}${m.town?' • '+esc(m.town):''}</small></div>`).join("");
+    tvaDrop.classList.add("open");
+  }
+  function pickName(i){ const m=nameMatches[i]; if(!m)return; tvaInput.value=m.name; tvaDrop.classList.remove("open"); loadRow(m.row,m.code); }
+  function manualSearchTVA(){ if(nameMatches.length){ pickName(hiIndex>=0?hiIndex:0); } else { tvaInput.focus(); } }
+  function loadRow(row,code){
+    tvaCode=code; tvaWatch=null; tvaSpares=null;
+    setTvaStatus("loading","Loading data…");
+    document.getElementById("tvaResults").innerHTML="";
+    jsonp(TVA_URL,{fn:"getDataByRow",arg:String(row)},function(data){
+      tvaWatch=data; clearTvaStatus();
+      if(!data){renderTVAEmpty();return;}
+      tvaMode="watches"; renderTVA();
+      jsonp(TVA_URL,{fn:"logSearch",arg:String(code),dealer:(data.dealer||"")},function(){});
+    });
+  }
+  function switchMode(mode){
+    if(mode===tvaMode)return; tvaMode=mode;
+    if(mode==="spares" && tvaSpares===null){ setTvaStatus("loading","Loading spares…"); jsonp(TVA_URL,{fn:"getSpares",arg:tvaCode},function(data){ tvaSpares=data; clearTvaStatus(); renderTVA(); }); }
+    else renderTVA();
+  }
+  function pctColor(p){if(p>=90)return"var(--good)";if(p>=60)return"var(--warn)";return"var(--bad)";}
+  function renderTVAEmpty(){
+    document.getElementById("tvaResults").innerHTML=`<div class="empty-state"><div class="empty-icon-wrap"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="empty-title serif">No Data Found</div><div class="empty-sub">No record matches that selection. Please try another name.</div></div>`;
+  }
+  function dealerStrip(d){
+    return `<div class="dealer-strip"><div class="field"><span>Code</span><b>${esc(d.code)}</b></div><div class="field"><span>Dealer</span><b>${esc(d.dealer)}</b></div><div class="field"><span>Town</span><b>${esc(d.town)}</b></div></div>`;
+  }
+  function renderTVA(){
+    const base=tvaWatch; if(!base){renderTVAEmpty();return;}
+    const seg=`<div class="seg"><button class="${tvaMode==='watches'?'active':''}" onclick="switchMode('watches')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 14 13"/><path d="M9 3h6M12 3v2"/></svg>Watches</button><button class="${tvaMode==='spares'?'active':''}" onclick="switchMode('spares')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg>Spares</button></div>`;
+    let body;
+    if(tvaMode==="watches") body=watchesTable(base);
+    else{
+      if(tvaSpares===null) body="<div class='empty-state'><div class='empty-sub'>Loading spares…</div></div>";
+      else if(!tvaSpares) body=`<div class="empty-state"><div class="empty-title serif">No Spares Data</div><div class="empty-sub">No spares record matches this dealer code.</div></div>`;
+      else body=sparesTable(tvaSpares);
     }
-
-    var btn=document.getElementById('submitBtn');
-    btn.disabled=true; btn.textContent='Submitting...';
-    msg.style.display='none';
-
-    fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) })
-      .then(function(r){ return r.json(); })
-      .then(function(res){
-        if(res.status==='ok'){ msg.className='msg ok'; msg.textContent='Submitted successfully. Thank you!'; resetForm(); }
-        else { msg.className='msg err'; msg.textContent='Error: '+(res.message||'try again'); }
-      }).catch(function(){
-        msg.className='msg ok'; msg.textContent='Submitted. Thank you!'; resetForm();
-      }).finally(function(){
-        btn.disabled=false; btn.textContent='Submit';
-      });
+    const meta=`<div class="results-meta"><div class="results-label">${tvaMode==='watches'?'Watches':'Spares'} — Target Vs Achievement</div><span class="srf-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>${esc(tvaCode)}</span></div>`;
+    document.getElementById("tvaResults").innerHTML=meta+seg+`<div class="result-card">${dealerStrip(base)}${body}<div class="disclaimer">Disclaimer: data is entered manually and may vary.</div></div>`;
+  }
+  function watchesTable(d){
+    let totalT=0,totalA=0,totalR=0,rows="";
+    for(let i=0;i<WATCH_BRANDS.length;i++){
+      const t=num(d.target&&d.target[i]); const a=num(d.achieved&&d.achieved[i]);
+      const r=t-a; const p=t?(a/t*100):0;
+      totalT+=t;totalA+=a;totalR+=r;
+      const col=pctColor(p),fill=Math.min(p,100).toFixed(0);
+      rows+=`<tr><td>${WATCH_BRANDS[i]}</td><td>${t}</td><td>${a}</td><td>${r}</td><td><span class="pct-txt" style="color:${col}">${p.toFixed(1)}%</span><span class="bar"><i style="width:${fill}%;background:${col}"></i></span></td></tr>`;
+    }
+    const tp=totalT?(totalA/totalT*100).toFixed(1):"0.0";
+    return `<div class="tbl-wrap"><table class="tva"><thead><tr><th>Brand</th><th>Target</th><th>Achieved</th><th>Remaining</th><th>Achieved %</th></tr></thead><tbody>${rows}<tr class="total-row"><td>Total</td><td>${totalT}</td><td>${totalA}</td><td>${totalR}</td><td>${tp}%</td></tr></tbody></table></div>`;
+  }
+  function sparesTable(s){
+    const target=num(s.target), batt=num(s.battery), spare=num(s.spares);
+    const ach=batt+spare; const remaining=target-ach; const pct=target?(ach/target*100):0;
+    const col=pctColor(pct); const fill=Math.min(Math.abs(pct),100).toFixed(0);
+    return `<div class="tbl-wrap"><table class="tva"><thead><tr><th>Target</th><th>Battery Achvd</th><th>Spares Achvd</th><th>Remaining</th><th>%</th></tr></thead><tbody><tr><td style="text-align:center;font-weight:700">${target}</td><td>${batt}</td><td>${spare}</td><td>${remaining}</td><td><span class="pct-txt" style="color:${col}">${pct.toFixed(1)}%</span><span class="bar"><i style="width:${fill}%;background:${col}"></i></span></td></tr></tbody></table></div>`;
   }
 
-  function resetForm(){
-    ['srf','variant','dealer','sales','dop','complain'].forEach(function(id){document.getElementById(id).value='';});
-    document.getElementById('date').value=new Date().toISOString().slice(0,10);
+  const DEALERS=["A.C BANERJEE & SONS","AKAI DISTRIBUTORS","AKAI ELECTRONICS","ANANDA WATCH CO.","ASHALATA WATCH","BANIK WATCH","BASAK RADIO & WATCH","BERIWAL DISTRIBUTOR","BISHNU WATCH CO","BUNTY WATCH CO","CALCUTTA WATCH TRADING CO","CAPITAL WATCH CO. (DHP)","CHATTERJEE WATCH CO.","EASTERN WATCH CO.","FASHION SQUARE","GANESH WATCH CO","GHARI HOUSE","GHARI MAHAL ( BLG)","GHARI MAHAL (MLD)","GUPTA ELECTRONICS","GUPTA WATCH CO.","HIND WATCH CO.","HIND WATCH CO. (RAI)","JANATA WATCH CO.","JAY GURU TIME CO.","KOHINOOR WATCH MAKERS","LITON WATCH CO","M.B. WATCH ENTERPRISE","M/s B.ROY","M/S SONY TIMES","MANGALDEEP","MAPLE WATCH WORLD","MAYA WATCH CO","MAZUMDAR WATCH","MODERN WATCH CO","MUKUL WATCH CO","NEW GENEVA WATCH CO.","NEW RATAN WATCH CO.","NEW RUBY WATCH","NEW TIME AND SOUND","NORTH BENGAL WATCH & ELECTRICALS","ORIENT GLOBAL PVT LTD(RAI)","ORIENT GLOBAL PVT.LTD.(ALP)","ORIENT WATCH & RADIO CO","PANDIT SUDAMA MISHRA","PAUL BROTHER","PAUL WATCH CO","POPULAR WATCH CO.","PRANAB & BROTHERS","PRISTINE","PURANMAL RADHAKISHAN","RAHUL ENTERPRISE","RAJ KUMARI DEVI","RAJ WATCH CO (SLG)","RAJ WATCH CO.","REGENT WATCH CO.","ROYAL WATCH CO (SLG)","ROYAL'S COLLECTION","RUBY WATCH CO (D)","SAHA ELECTRONICS","SAHA WATCH CO.","SARKAR WATCH CENTRE","SARWAN WATCH CENTER","SIDARTH COMMUNICATION","SINGTAM WATCH HOUSE","SOUMIK ENTERPRISE","SRI KRISHNA WATCH CO.","STYLO","SWISS WATCH CO","THE MAPLE","TIME CENTRE","TIME HOUSE","TIME HOUSE (MATIGARA)","TIME HOUSE & OPTICALS","TIME KING","TIME MONARCH","UNION ENTERPRISE","WATCH AND OPTIC CENTRE"];
+  const SALES=["SAMARENDRA CHANDRA SARKA","AJAY SINGHA","SOMEN DAS","CHANDAN DAS"];
+  function rVal(id){return document.getElementById(id).value.trim();}
+  function submitReceipt(){
+    var msg=document.getElementById('rMsg');
+    var payload={ srf:rVal('rSrf'), date:rVal('rDate'), dealer:rVal('rDealer'), sales:rVal('rSales'), dop:rVal('rDop'), variant:rVal('rVariant'), complain:rVal('rComplain'), joboffer:JOB_PREFIX };
+    if(!payload.srf||!payload.date||!payload.dealer||!payload.sales||!payload.dop||!payload.variant||!payload.complain){ msg.className='form-msg err'; msg.textContent='Please fill all required fields.'; return; }
+    if(!isSet(SERVICE_URL)){ msg.className='form-msg err'; msg.textContent='Configuration error: SERVICE_URL not set.'; return; }
+    var btn=document.getElementById('rSubmitBtn'); btn.disabled=true; btn.textContent='Submitting…'; msg.style.display='none';
+    fetch(SERVICE_URL,{method:'POST',body:JSON.stringify(payload)})
+      .then(function(r){return r.json();})
+      .then(function(res){ if(res.status==='ok'){ msg.className='form-msg ok'; msg.textContent='Submitted successfully. Thank you!'; resetReceipt(); } else { msg.className='form-msg err'; msg.textContent='Error: '+(res.message||'try again'); } })
+      .catch(function(){ msg.className='form-msg ok'; msg.textContent='Submitted. Thank you!'; resetReceipt(); })
+      .finally(function(){ btn.disabled=false; btn.textContent='Submit Entry'; });
   }
+  function resetReceipt(){
+    ['rSrf','rVariant','rDealer','rSales','rDop','rComplain'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('rDate').value=new Date().toISOString().slice(0,10);
+  }
+
+  document.addEventListener("DOMContentLoaded",function(){
+    const d=new Date();
+    document.getElementById("todayDate").textContent=d.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"long",year:"numeric"});
+    document.getElementById("svcInput").addEventListener("keypress",e=>{if(e.key==="Enter")searchService();});
+    document.getElementById("svcInput").focus();
+    document.getElementById("rJob").value=JOB_PREFIX;
+    document.getElementById("rDate").value=new Date().toISOString().slice(0,10);
+    var dl=document.getElementById('rDealerList'); DEALERS.forEach(function(x){var o=document.createElement('option');o.value=x;dl.appendChild(o);});
+    var sl=document.getElementById('rSalesList'); SALES.forEach(function(x){var o=document.createElement('option');o.value=x;sl.appendChild(o);});
+  });
 </script>
 </body>
 </html>
