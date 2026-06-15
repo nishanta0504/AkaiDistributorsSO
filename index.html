@@ -196,7 +196,7 @@
     </button>
     <span id="topWing"></span>
     <div class="topbar-text">
-      <div class="topbar-name">AKAI Distributors SO</div>
+      <div class="topbar-name">AKAI Distributors</div>
       <div class="topbar-sub" id="pageSub">New Service Entry</div>
     </div>
   </div>
@@ -207,7 +207,7 @@
 <nav class="panel" id="panel">
   <div class="panel-head">
     <span id="panelWing"></span>
-    <div class="panel-title">AKAI Distributors SO</div>
+    <div class="panel-title">AKAI Distributors</div>
   </div>
   <div class="panel-cap">Pages</div>
   <div class="nav-link active" data-page="receipt">
@@ -514,7 +514,7 @@
       tvaWatch=data; clearStatus("tva");
       if(!data){renderTVAEmpty();return;}
       tvaMode="watches"; renderTVA();
-      jsonp(TVA_URL,{fn:"logSearch",arg:String(code),dealer:(data.dealer||"")},function(){});
+      // logSearch intentionally not called from this site
     });
   }
   function switchMode(mode){
