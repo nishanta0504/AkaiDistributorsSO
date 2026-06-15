@@ -304,7 +304,7 @@
       </div>
       <div class="hint-line">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Type a dealer name and choose from the list below
+        Type the dealer name and press Enter or Look Up to see matches below
       </div>
     </div>
 
@@ -377,8 +377,12 @@
     if(!isSet(SERVICE_URL)){setStatus("srf","error","Configuration error: Service URL not set.");return;}
     setStatus("srf","loading","Searching for SRF "+code+"…");
     document.getElementById("srfResults").innerHTML="";
-    jsonp(SERVICE_URL,{code:code},showSRF);
+    fetch(SERVICE_URL+"?code="+encodeURIComponent(code))
+      .then(r=>{if(!r.ok)throw new Error("Server error "+r.status);return r.json();})
+      .then(showSRF).catch(showSRFerr);
   }
+  function showSRFerr(err){clearStatus("srf");setStatus("srf","error","Could not fetch record: "+(err.message||"Unknown error."));}
+
 
   function showSRF(resp){
     clearStatus("srf");
@@ -441,24 +445,45 @@
   }
 
   const tvaInput=document.getElementById("tvaInput"), tvaDrop=document.getElementById("tvaDrop");
-  let nameTimer=null;
+  let lastSearchedQuery="";
   tvaInput.addEventListener("input",function(){
-    const q=tvaInput.value.trim(); clearTimeout(nameTimer);
-    if(q.length<1){ tvaDrop.classList.remove("open"); nameMatches=[]; hiIndex=-1; selectedIndex=-1; renderDrop(); return; }
-    if(!isSet(TVA_URL)){setStatus("tva","error","Configuration error: TVA_URL not set in the file.");return;}
-    nameTimer=setTimeout(function(){ jsonp(TVA_URL,{fn:"searchNames",arg:q},function(list){ nameMatches=list||[]; hiIndex=-1; selectedIndex=-1; renderDrop(); }); },200);
+    const q=tvaInput.value.trim();
+    // close and clear the list as soon as the box is emptied or the text changes from the last searched value
+    if(q.length<1 || q!==lastSearchedQuery){
+      tvaDrop.classList.remove("open");
+      tvaDrop.innerHTML=`<div class="ndp-label">Matching Dealers</div>`;
+      nameMatches=[]; hiIndex=-1; selectedIndex=-1;
+      lastSearchedQuery="";
+    }
   });
   tvaInput.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){
+      e.preventDefault();
+      if(tvaDrop.classList.contains("open")){
+        if(hiIndex>=0&&nameMatches[hiIndex]) pickName(hiIndex);
+      } else {
+        runNameSearch();
+      }
+      return;
+    }
     if(!tvaDrop.classList.contains("open"))return;
     if(e.key==="ArrowDown"){e.preventDefault();hiIndex=Math.min(hiIndex+1,nameMatches.length-1);renderDrop();}
     else if(e.key==="ArrowUp"){e.preventDefault();hiIndex=Math.max(hiIndex-1,0);renderDrop();}
-    else if(e.key==="Enter"){e.preventDefault();if(hiIndex>=0&&nameMatches[hiIndex])pickName(hiIndex);}
     else if(e.key==="Escape"){tvaDrop.classList.remove("open");}
   });
+  function runNameSearch(){
+    const q=tvaInput.value.trim();
+    if(q.length<1) return;
+    if(!isSet(TVA_URL)){setStatus("tva","error","Configuration error: TVA_URL not set in the file.");return;}
+    jsonp(TVA_URL,{fn:"searchNames",arg:q},function(list){
+      nameMatches=list||[]; hiIndex=-1; selectedIndex=-1; lastSearchedQuery=q; renderDrop();
+    });
+  }
   document.addEventListener("click",function(e){
     if(!tvaDrop.contains(e.target) && e.target!==tvaInput){
       tvaDrop.classList.remove("open");
     }
+
   });
 
   function renderDrop(){
@@ -477,7 +502,10 @@
     renderDrop();
     loadRow(m.row,m.code);
   }
-  function manualSearchTVA(){ if(nameMatches.length){ pickName(hiIndex>=0?hiIndex:0); } else { tvaInput.focus(); } }
+  function manualSearchTVA(){
+    if(tvaDrop.classList.contains("open") && nameMatches.length){ pickName(hiIndex>=0?hiIndex:0); }
+    else { runNameSearch(); }
+  }
 
   function loadRow(row,code){
     tvaCode=code; tvaWatch=null; tvaSpares=null;
