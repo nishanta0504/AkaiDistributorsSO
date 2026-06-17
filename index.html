@@ -79,14 +79,14 @@
   .name-opt small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;}
 
   /* SO SUMMARY CARD (sum across all matching dealers) */
-  .so-summary-card{background:linear-gradient(150deg,var(--slate-2) 0%,var(--slate-dk) 100%);border-radius:var(--rad-xl);padding:22px 24px;margin-bottom:26px;position:relative;overflow:hidden;}
-  .so-summary-label{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--amber);margin-bottom:14px;}
-  .so-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-  .so-summary-cell{background:rgba(255,255,255,.06);border-radius:var(--rad-md);padding:14px 16px;}
-  .so-summary-cell span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.45);margin-bottom:6px;font-weight:700;}
-  .so-summary-cell b{font-size:20px;color:#fff;font-weight:800;font-family:'Playfair Display',serif;}
+  .so-summary-card{background:linear-gradient(150deg,var(--slate-2) 0%,var(--slate-dk) 100%);border-radius:var(--rad-md);padding:14px 16px;margin-bottom:18px;position:relative;overflow:hidden;}
+  .so-summary-label{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;}
+  .so-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .so-summary-cell{background:rgba(255,255,255,.06);border-radius:var(--rad-sm);padding:9px 8px;min-width:0;}
+  .so-summary-cell span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);margin-bottom:4px;font-weight:700;white-space:nowrap;}
+  .so-summary-cell b{font-family:'Inter',sans-serif;font-size:14px;color:#fff;font-weight:700;display:block;overflow-wrap:anywhere;line-height:1.2;}
   .so-summary-cell b.amber{color:var(--amber);}
-  .so-summary-count{font-size:11.5px;color:rgba(255,255,255,.4);margin-top:13px;}
+  .so-summary-count{font-size:10.5px;color:rgba(255,255,255,.4);margin-top:10px;}
 
 
   .status-strip{display:none;align-items:center;gap:11px;padding:12px 16px;border-radius:var(--rad-md);font-size:13px;font-weight:500;margin-bottom:18px;border:1px solid transparent;}
@@ -186,6 +186,11 @@
     .bar{width:46px;}
     .seg button{font-size:14px;padding:10px 22px;}
     .form-body{padding:20px 18px;}
+    .so-summary-card{padding:12px 12px;}
+    .so-summary-grid{grid-template-columns:repeat(3,1fr);gap:6px;}
+    .so-summary-cell{padding:8px 6px;}
+    .so-summary-cell span{font-size:8.5px;letter-spacing:.4px;}
+    .so-summary-cell b{font-size:12px;}
   }
 </style>
 </head>
@@ -332,6 +337,16 @@
 <script>
   function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
   function num(v){if(!v)return 0;return Number(String(v).replace(/,/g,""))||0;}
+  function fmtINR(v){
+    const n = Number(v)||0;
+    const neg = n<0; const x = Math.abs(Math.round(n));
+    const s = String(x);
+    if(s.length<=3) return (neg?"-":"")+s;
+    const last3 = s.slice(-3);
+    const rest = s.slice(0,-3);
+    const grouped = rest.replace(/\B(?=(\d{2})+(?!\d))/g,",");
+    return (neg?"-":"")+grouped+","+last3;
+  }
   function isSet(u){return u && u.indexOf("PASTE_")===-1;}
 
   function setStatus(prefix,type,msg){
@@ -507,9 +522,9 @@
     el.innerHTML=`<div class="so-summary-card">
       <div class="so-summary-label">SO Summary — All Matching Dealers</div>
       <div class="so-summary-grid">
-        <div class="so-summary-cell"><span>SO Target</span><b>${summary.target}</b></div>
-        <div class="so-summary-cell"><span>SO Achieved</span><b class="amber">${summary.achieved}</b></div>
-        <div class="so-summary-cell"><span>SO Balance</span><b>${summary.balance}</b></div>
+        <div class="so-summary-cell"><span>SO Target</span><b>${fmtINR(summary.target)}</b></div>
+        <div class="so-summary-cell"><span>SO Achieved</span><b class="amber">${fmtINR(summary.achieved)}</b></div>
+        <div class="so-summary-cell"><span>SO Balance</span><b>${fmtINR(summary.balance)}</b></div>
       </div>
       <div class="so-summary-count">Across ${summary.count} matching dealer${summary.count>1?'s':''}</div>
     </div>`;
